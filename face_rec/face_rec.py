@@ -52,13 +52,16 @@ class FaceRecognition:
 
     def recognize(self, face_image):
         """
-        Recognize a person from a given image.
+        Recognize a person from a given image and return their face position.
         
         Parameters:
         - face_image (numpy.ndarray): Image array in which to recognize faces.
         
         Returns:
-        - str: Name of the recognized person or status.
+        - dict or list: If single face, returns dict with name and position. 
+                       If multiple faces, returns list of dicts. Each dict contains:
+                       - 'name': Name of the recognized person or status
+                       - 'position': Dictionary with 'top', 'right', 'bottom', 'left' coordinates
         """
         known_encodings = []
         known_names = []
@@ -73,15 +76,16 @@ class FaceRecognition:
                     known_names.append(name)
                     print(f"Loaded {name} face encoding")
 
-        # Find the face encodings in the provided image
-        face_encodings = face_recognition.face_encodings(face_image)
+        # Find the face locations and encodings in the provided image
+        face_locations = face_recognition.face_locations(face_image)
+        face_encodings = face_recognition.face_encodings(face_image, face_locations)
 
         if len(face_encodings) == 0:
             return "no_persons_found"
 
         # Compare each face found in the image to known faces
         results = []
-        for encoding in face_encodings:
+        for i, encoding in enumerate(face_encodings):
             matches = face_recognition.compare_faces(known_encodings, encoding)
             name = "unknown_person"
 
@@ -93,10 +97,25 @@ class FaceRecognition:
                 if matches[best_match_index]:
                     name = known_names[best_match_index]
 
-            results.append(name)
+            # Get the face position (top, right, bottom, left)
+            position = {
+                "top": face_locations[i][0],
+                "right": face_locations[i][1],
+                "bottom": face_locations[i][2],
+                "left": face_locations[i][3]
+            }
+            
+            # Add face center coordinates for easier targeting
+            position["center_x"] = (position["left"] + position["right"]) // 2
+            position["center_y"] = (position["top"] + position["bottom"]) // 2
 
-        # If multiple faces are detected, return the list
+            results.append({
+                "name": name,
+                "position": position
+            })
+
+        # If only one face is detected, return just that result
         if len(results) == 1:
             return results[0]
         else:
-            return results  # List of names/statuses
+            return results  # List of dicts with names and positions

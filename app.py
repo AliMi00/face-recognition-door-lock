@@ -31,6 +31,7 @@ def recognize():
     """
     Endpoint to recognize faces in an uploaded image.
     Expects a file with key 'image'.
+    Returns both the recognized person(s) and their face position(s).
     """
     if 'image' not in request.files:
         return jsonify({'error': 'No image part in the request.'}), 400
@@ -54,12 +55,13 @@ def recognize():
         # Convert image from BGR (OpenCV) to RGB (face_recognition)
         rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-        # Recognize faces
+        # Recognize faces - now returns name and position
         result = face_recognizer.recognize(rgb_image)
 
         # Optionally, remove the uploaded image after processing
         os.remove(image_path)
 
+        # Return the recognition result, which now includes face positions
         return jsonify({'result': result}), 200
     else:
         return jsonify({'error': 'Allowed image types are png, jpg, jpeg.'}), 400
@@ -106,7 +108,7 @@ def index():
     return jsonify({
         'message': 'Face Recognition API',
         'endpoints': {
-            'POST /recognize': 'Recognize faces in an image.',
+            'POST /recognize': 'Recognize faces in an image and return their positions.',
             'POST /add_person': 'Add a new person with an image.'
         }
     }), 200
