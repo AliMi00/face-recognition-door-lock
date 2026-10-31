@@ -20,7 +20,7 @@ astunparse==1.6.3
 beautifulsoup4==4.12.3
 blinker==1.8.2
 builtin-interfaces==1.2.1
-certifi==2024.8.30
+certifi==2026.10.19
 charset-normalizer==3.3.2
 click==8.1.7
 composition-interfaces==1.2.1
